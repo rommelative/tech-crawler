@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科技资讯聚合平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .collected-panel {
+            width: 350px;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+        }
+
+        .collected-panel h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .collected-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .collected-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .collected-item .collected-title {
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .collected-item .collected-url {
+            color: #667eea;
+            font-size: 12px;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .collected-item .collected-url:hover {
+            text-decoration: underline;
+        }
+
+        .collected-item .collected-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collected-item .collected-time {
+            color: #999;
+            font-size: 11px;
+        }
+
+        .remove-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+
+        .remove-btn:hover {
+            background: #d32f2f;
+        }
+
+        .collected-empty {
+            text-align: center;
+            padding: 30px 10px;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .header-info .update-time {
+            color: #999;
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .refresh-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            color: #666;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+        
+        .tab.active {
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .news-container {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .news-header h2 {
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .news-count {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .news-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .news-item:hover {
+            background: #f0f0ff;
+            transform: translateX(5px);
+        }
+        
+        .news-item .news-content {
+            flex: 1;
+            margin-right: 15px;
+        }
+        
+        .news-item .news-title {
+            color: #333;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .news-item .news-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .news-item .news-source {
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .news-item .news-time {
+            color: #999;
+        }
+        
+        .source-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        
+        .source-tag.tech-daily {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .source-tag.beijing-kw {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .source-tag.miit {
+            background: #fce4ec;
+            color: #c62828;
+        }
+
+        .collect-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+
+        .collect-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .collect-btn.collected {
+            background: #9e9e9e;
+            cursor: default;
+        }
+
+        .news-item-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .news-item-wrapper .news-info {
+            flex: 1;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #f44336;
+        }
+        
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .tabs {
+                gap: 8px;
+            }
+            
+            .tab {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+            
+            .news-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .news-item .news-content {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <div class="header">
+                <h1>科技资讯聚合平台</h1>
+                <div class="header-info">
+                    <span class="update-time">最后更新: <span id="lastUpdate">加载中...</span></span>
+                    <button class="refresh-btn" onclick="refreshNews()">刷新数据</button>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('all')" data-tab="all">全部资讯</button>
+                <button class="tab" onclick="switchTab('tech-daily')" data-tab="tech-daily">科技日报</button>
+                <button class="tab" onclick="switchTab('beijing-kw')" data-tab="beijing-kw">北京市科委</button>
+                <button class="tab" onclick="switchTab('miit')" data-tab="miit">工信部</button>
+            </div>
+
+            <div class="news-container">
+                <div class="news-header">
+                    <h2 id="newsTitle">全部资讯</h2>
+                    <span class="news-count">共 <span id="newsCount">0</span> 条</span>
+                </div>
+                <div class="news-list" id="newsList">
+                    <div class="loading">正在加载...</div>
+                </div>
+            </div>
+
+            <div class="footer">
+                数据来源：科技日报、北京市科委、工信部 | 自动刷新间隔：5分钟
+            </div>
+        </div>
+
+        <div class="collected-panel">
+            <h3>已收录消息 (<span id="collectedCount">0</span>)</h3>
+            <div class="collected-list" id="collectedList">
+                <div class="collected-empty">暂无收录</div>
+            </div>
+        </div>
+
+        <div class="toast" id="toast">已收录到收藏夹</div>
+    </div>
+    
+    <script>
+        let currentTab = 'all';
+        let allNewsData = {};
+        let collectedUrls = new Set();
+
+        // 获取新闻数据
+        async function fetchNews() {
+            try {
+                const response = await fetch('/api/news');
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    allNewsData = {
+                        'all': result.data.news,
+                        'tech-daily': result.data.news.filter(n => n.source.includes('科技日报')),
+                        'beijing-kw': result.data.news.filter(n => n.source.includes('科委')),
+                        'miit': result.data.news.filter(n => n.source.includes('工信部'))
+                    };
+
+                    document.getElementById('lastUpdate').textContent = result.data.last_update;
+                    renderNews();
+                }
+            } catch (error) {
+                console.error('获取新闻失败:', error);
+                document.getElementById('newsList').innerHTML =
+                    '<div class="error">加载失败，请点击刷新按钮重试</div>';
+            }
+        }
+
+        // 获取已收录新闻
+        async function fetchCollected() {
+            try {
+                const response = await fetch('/api/collected');
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    renderCollected(result.data.collected);
+                    // 保存已收录的URL集合
+                    collectedUrls = new Set(result.data.collected.map(item => item.url));
+                }
+            } catch (error) {
+                console.error('获取已收录失败:', error);
+            }
+        }
+
+        // 渲染已收录列表
+        function renderCollected(collected) {
+            const collectedList = document.getElementById('collectedList');
+            const collectedCount = document.getElementById('collectedCount');
+
+            collectedCount.textContent = collected.length;
+
+            if (collected.length === 0) {
+                collectedList.innerHTML = '<div class="collected-empty">暂无收录</div>';
+                return;
+            }
+
+            collectedList.innerHTML = collected.map((item, index) => {
+                const title = escapeHtml(item.title);
+                const url = escapeHtml(item.url);
+                const time = escapeHtml(item.time);
+
+                return `
+                    <div class="collected-item">
+                        <div class="collected-title">${title}</div>
+                        <a href="${url}" target="_blank" class="collected-url">${url}</a>
+                        <div class="collected-actions">
+                            <span class="collected-time">${time}</span>
+                            <button class="remove-btn" onclick="removeCollection('${url}', this)">取消收录</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 取消收录
+        async function removeCollection(url, btn) {
+            event.stopPropagation();
+
+            try {
+                const response = await fetch('/api/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    // 从列表中移除
+                    btn.closest('.collected-item').remove();
+
+                    // 更新计数
+                    const count = document.querySelectorAll('.collected-item').length;
+                    document.getElementById('collectedCount').textContent = count;
+
+                    if (count === 0) {
+                        document.getElementById('collectedList').innerHTML = '<div class="collected-empty">暂无收录</div>';
+                    }
+
+                    // 从URL集合中移除
+                    collectedUrls.delete(url);
+
+                    // 更新主列表中对应按钮的状态
+                    updateCollectButtonState(url);
+
+                    showToast('已取消收录');
+                } else {
+                    showToast(result.message || '取消失败');
+                }
+            } catch (error) {
+                console.error('取消失败:', error);
+                showToast('取消失败，请重试');
+            }
+        }
+
+        // 更新主列表中的收录按钮状态
+        function updateCollectButtonState(url) {
+            // 重新渲染新闻列表，更新按钮状态
+            renderNews();
+        }
+        
+        // 获取新闻数据
+        async function fetchNews() {
+            try {
+                const response = await fetch('/api/news');
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    allNewsData = {
+                        'all': result.data.news,
+                        'tech-daily': result.data.news.filter(n => n.source.includes('科技日报')),
+                        'beijing-kw': result.data.news.filter(n => n.source.includes('科委')),
+                        'miit': result.data.news.filter(n => n.source.includes('工信部'))
+                    };
+                    
+                    document.getElementById('lastUpdate').textContent = result.data.last_update;
+                    renderNews();
+                }
+            } catch (error) {
+                console.error('获取新闻失败:', error);
+                document.getElementById('newsList').innerHTML = 
+                    '<div class="error">加载失败，请点击刷新按钮重试</div>';
+            }
+        }
+        
+        // 渲染新闻列表
+        function renderNews() {
+            const news = allNewsData[currentTab] || [];
+            const newsList = document.getElementById('newsList');
+            const newsCount = document.getElementById('newsCount');
+
+            newsCount.textContent = news.length;
+
+            if (news.length === 0) {
+                newsList.innerHTML = '<div class="empty">暂无数据</div>';
+                return;
+            }
+
+            newsList.innerHTML = news.map((item, index) => {
+                const sourceClass = getSourceClass(item.source);
+                const title = escapeHtml(item.title);
+                const url = escapeHtml(item.url);
+                const source = escapeHtml(item.source);
+                const time = escapeHtml(item.pub_time);
+
+                const isCollected = collectedUrls.has(url);
+
+                return `
+                    <div class="news-item">
+                        <div class="news-content" onclick="window.open('${url}', '_blank')">
+                            <div class="news-title">${title}</div>
+                            <div class="news-meta">
+                                <span class="news-source">${source}</span>
+                                ${time ? `<span class="news-time">${time}</span>` : ''}
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="source-tag ${sourceClass}">${source.split('-')[0]}</span>
+                            ${isCollected
+                                ? '<button class="collect-btn collected" disabled>已收录</button>'
+                                : `<button class="collect-btn" id="collect-${index}" onclick="collectNews('${escapeHtml(item.title)}', '${url}', this)">收录</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 获取来源样式类
+        function getSourceClass(source) {
+            if (source.includes('科技日报')) return 'tech-daily';
+            if (source.includes('科委')) return 'beijing-kw';
+            if (source.includes('工信部')) return 'miit';
+            return '';
+        }
+        
+        // HTML转义
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 切换标签
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // 更新标签状态
+            document.querySelectorAll('.tab').forEach(t => {
+                t.classList.remove('active');
+                if (t.dataset.tab === tab) {
+                    t.classList.add('active');
+                }
+            });
+            
+            // 更新标题
+            const titles = {
+                'all': '全部资讯',
+                'tech-daily': '科技日报',
+                'beijing-kw': '北京市科委',
+                'miit': '工信部'
+            };
+            document.getElementById('newsTitle').textContent = titles[tab];
+            
+            renderNews();
+        }
+        
+        // 刷新数据
+        async function refreshNews() {
+            const btn = document.querySelector('.refresh-btn');
+            btn.disabled = true;
+            btn.textContent = '刷新中...';
+
+            try {
+                const response = await fetch('/api/refresh');
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    await fetchNews();
+                }
+            } catch (error) {
+                console.error('刷新失败:', error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '刷新数据';
+            }
+        }
+
+        // 收录新闻
+        async function collectNews(title, url, btn) {
+            event.stopPropagation();
+
+            try {
+                const response = await fetch('/api/collect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title: title, url: url })
+                });
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    // 显示提示
+                    btn.classList.add('collected');
+                    btn.textContent = '已收录';
+                    btn.disabled = true;
+                    showToast('已收录到收藏夹');
+
+                    // 添加到已收录URL集合
+                    collectedUrls.add(url);
+
+                    // 刷新已收录列表
+                    fetchCollected();
+                } else {
+                    showToast(result.message || '收录失败');
+                }
+            } catch (error) {
+                console.error('收录失败:', error);
+                showToast('收录失败，请重试');
+            }
+        }
+
+        // 显示提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+        
+        // 自动刷新（每5分钟）
+        setInterval(refreshNews, 5 * 60 * 1000);
+
+        // 页面加载时获取数据
+        fetchNews();
+        fetchCollected();
+    </script>
+</body>
+</html>
